@@ -30,7 +30,8 @@
     showNote: true,
     showRarity: true,
     showPrice: true,
-    showQty: true
+    showQty: true,
+    lang: 'th'
   };
 
   var state = { settings: Object.assign({}, DEFAULTS), cards: [] };
@@ -199,6 +200,7 @@
           state.settings.accent = R.THEMES[v].accent;
           $('[data-setting="accent"]').value = state.settings.accent;
         }
+        if (key === 'lang') syncMode();
         saveSettings();
         schedulePreview();
       });
@@ -230,8 +232,8 @@
       btn.setAttribute('aria-checked', on ? 'true' : 'false');
       btn.classList.toggle('on', on);
     });
-    var stamp = (R.MODES[mode] || R.MODES.WTS).stamp;
-    var label = stamp.charAt(0) + stamp.slice(1).toLowerCase();
+    var stamp = R.stampText(state.settings);
+    var label = state.settings.lang === 'en' ? stamp.charAt(0) + stamp.slice(1).toLowerCase() : stamp;
     $all('.sold-label').forEach(function (el) { el.textContent = label; });
   }
 

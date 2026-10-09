@@ -14,6 +14,7 @@ Add your card photos, type in each card's rarity and price, then export a PNG or
 - **Card shape**: "Match my images" (the default) uses your uploads' own shape, so official scans like Vanguard's 350×510 are never cropped. Fixed Vanguard, standard 63×88, graded slab and square shapes are also available.
 - **Layout**: automatic or fixed columns, fill or fit photos, and rotation for sideways phone shots.
 - **Font**: [Kanit](https://fonts.google.com/specimen/Kanit) for Thai and English. Japanese text uses your system font.
+- **Thai or English image text**: the post-type label (ขาย / รับซื้อ / แลก…), sold stamp (ขายแล้ว…) and quantity (1 ใบ) are in Thai by default. Switch to English under *Text on image*.
 - **Themes**: six colour themes plus a custom price colour, and a currency symbol placed before or after the number.
 - **Split big lists** into several images (e.g. 9 or 12 cards each) so Facebook doesn't shrink one huge image. Each image is numbered 1/3, 2/3…
 - **Export** at up to 3000 px wide (2048 px is Facebook's sweet spot). Then download, copy to the clipboard and paste into a post, or share directly from your phone.

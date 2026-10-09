@@ -22,13 +22,25 @@
     carbon:   { name: 'Carbon', bg: '#0f0f0f', bg2: '#1a1a1a', imgBg: '#262626', text: '#fafafa', muted: '#a3a3a3', accent: '#22c55e' }
   };
 
+  // Post types, with the label and sold stamp in each image language.
   var MODES = {
-    'WTS':       { color: '#16a34a', stamp: 'SOLD' },
-    'WTB':       { color: '#2563eb', stamp: 'FOUND' },
-    'WTT':       { color: '#9333ea', stamp: 'TRADED' },
-    'WTS / WTT': { color: '#0d9488', stamp: 'SOLD' },
-    'WTB / WTS': { color: '#ea580c', stamp: 'DONE' }
+    'WTS':       { color: '#16a34a', label: { th: 'ขาย' },        stamp: { en: 'SOLD', th: 'ขายแล้ว' } },
+    'WTB':       { color: '#2563eb', label: { th: 'รับซื้อ' },     stamp: { en: 'FOUND', th: 'ได้แล้ว' } },
+    'WTT':       { color: '#9333ea', label: { th: 'แลก' },        stamp: { en: 'TRADED', th: 'แลกแล้ว' } },
+    'WTS / WTT': { color: '#0d9488', label: { th: 'ขาย / แลก' },  stamp: { en: 'SOLD', th: 'ขายแล้ว' } },
+    'WTB / WTS': { color: '#ea580c', label: { th: 'ซื้อ / ขาย' }, stamp: { en: 'DONE', th: 'เรียบร้อย' } }
   };
+
+  // Other text the renderer draws on the image.
+  var TEXT = {
+    en: { qty: function (n) { return '×' + n; }, empty: 'Add card images to fill the grid', noImage: 'No image' },
+    th: { qty: function (n) { return n + ' ใบ'; }, empty: 'เพิ่มรูปการ์ดเพื่อเริ่มทำตาราง', noImage: 'ไม่มีรูป' }
+  };
+
+  function langOf(s) { return TEXT[s.lang] ? s.lang : 'en'; }
+  function modeOf(s) { return MODES[s.mode] ? s.mode : 'WTS'; }
+  function modeLabel(s) { return MODES[modeOf(s)].label[langOf(s)] || modeOf(s); }
+  function stampText(s) { return MODES[modeOf(s)].stamp[langOf(s)]; }
 
   // Height / width of the picture area for each fixed card shape.
   // ("auto" is resolved by the app from the uploaded images.)
@@ -201,10 +213,10 @@
     var L = { W: W, u: u, pad: pad };
 
     // ---- Header: [MODE] Title ........ 1/3
-    var modeLabel = s.mode || 'WTS';
+    L.modeLabel = modeLabel(s);
     L.pillFont = font(600, 30 * u);
     ctx.font = L.pillFont;
-    L.pillW = ctx.measureText(modeLabel).width + 40 * u;
+    L.pillW = ctx.measureText(L.modeLabel).width + 40 * u;
     L.pillH = 54 * u;
 
     L.pageLabel = opts.pageCount > 1 ? (opts.pageIndex + 1) + '/' + opts.pageCount : '';
@@ -265,7 +277,7 @@
       }
       if (s.showPrice) it.price = formatPrice(card.price, s);
       if (s.showRarity) it.rarity = String(card.rarity || '').trim();
-      if (s.showQty && Number(card.qty) >= 1) it.qty = '×' + Math.floor(Number(card.qty));
+      if (s.showQty && Number(card.qty) >= 1) it.qty = TEXT[langOf(s)].qty(Math.floor(Number(card.qty)));
       return it;
     });
 
@@ -299,7 +311,7 @@
     var s = opts.settings;
     var theme = THEMES[s.theme] || THEMES.midnight;
     var accent = s.accent || theme.accent;
-    var mode = MODES[s.mode] || MODES.WTS;
+    var mode = MODES[modeOf(s)];
     var L = computeLayout(opts);
     var u = L.u, W = L.W, H = L.H, pad = L.pad;
 
@@ -322,7 +334,7 @@
     ctx.fillStyle = readableOn(mode.color);
     ctx.font = L.pillFont;
     ctx.textAlign = 'center';
-    ctx.fillText(s.mode || 'WTS', pad + L.pillW / 2, pillY + L.pillH / 2 + 2 * u);
+    ctx.fillText(L.modeLabel, pad + L.pillW / 2, pillY + L.pillH / 2 + 2 * u);
 
     // Title
     ctx.textAlign = 'left';
@@ -365,7 +377,7 @@
       ctx.fillStyle = theme.muted;
       ctx.font = font(500, 30 * u);
       ctx.textAlign = 'center';
-      ctx.fillText('Add card images to fill the grid', W / 2, g.y + 160 * u);
+      ctx.fillText(TEXT[langOf(s)].empty, W / 2, g.y + 160 * u);
       ctx.textAlign = 'left';
     }
 
@@ -431,14 +443,14 @@
       ctx.fillStyle = theme.muted;
       ctx.font = font(500, g.cs * 0.06);
       ctx.textAlign = 'center';
-      ctx.fillText('No image', x + cw / 2, y + ih / 2);
+      ctx.fillText(TEXT[langOf(s)].noImage, x + cw / 2, y + ih / 2);
       ctx.textAlign = 'left';
     }
 
     if (card.sold) {
       ctx.fillStyle = 'rgba(0,0,0,0.5)';
       ctx.fillRect(x, y, cw, ih);
-      var stamp = mode.stamp;
+      var stamp = stampText(s);
       ctx.save();
       ctx.translate(x + cw / 2, y + ih / 2);
       ctx.rotate(-0.3);
@@ -506,6 +518,7 @@
   global.GridRenderer = {
     THEMES: THEMES,
     MODES: MODES,
+    stampText: stampText,
     SHAPES: SHAPES,
     FONT_FAMILY: FONT_FAMILY,
     FONT_WEIGHTS: FONT_WEIGHTS,
