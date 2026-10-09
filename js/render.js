@@ -265,7 +265,7 @@
       }
       if (s.showPrice) it.price = formatPrice(card.price, s);
       if (s.showRarity) it.rarity = String(card.rarity || '').trim();
-      if (s.showQty && Number(card.qty) > 1) it.qty = '×' + Math.floor(Number(card.qty));
+      if (s.showQty && Number(card.qty) >= 1) it.qty = '×' + Math.floor(Number(card.qty));
       return it;
     });
 

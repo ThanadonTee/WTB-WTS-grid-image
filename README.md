@@ -7,7 +7,7 @@ Add your card photos, type in each card's rarity and price, then export a PNG or
 ## Features
 
 - **Add cards fast**: pick several photos at once, drag and drop them, paste with Ctrl/⌘+V, or paste an image link.
-- **Card-first layout**: cards fill the grid with thin gaps. Rarity and price are tags on each card's bottom corners, and quantity sits top-right.
+- **Card-first layout**: cards fill the grid with thin gaps. Rarity and price are tags on each card's bottom corners, and quantity (×1, ×2…) sits top-right.
 - **Per-card details**: rarity (colour-coded for Vanguard's RRR, SP, OR, SEC… and other games' SAR, SIR, UR, Alt Art…), price, quantity, plus an optional name and note shown as a caption under the card.
 - **Mark as sold or found**: puts a stamp over the card, so you can repost an updated list.
 - **Post header and footer**: WTS / WTB / WTT / WTS-WTT / WTB-WTS label, a title, notes (shipping, payment), and your contact details.
