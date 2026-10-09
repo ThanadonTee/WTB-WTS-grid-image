@@ -24,10 +24,10 @@
 
   // Post types, with the label and sold stamp in each image language.
   var MODES = {
-    'WTS':       { color: '#16a34a', label: { th: 'ขาย' },        stamp: { en: 'SOLD', th: 'ขายแล้ว' } },
+    'WTS':       { color: '#16a34a', label: { th: 'ขาย' },        stamp: { en: 'SOLD', th: 'ออกแล้ว' } },
     'WTB':       { color: '#2563eb', label: { th: 'รับซื้อ' },     stamp: { en: 'FOUND', th: 'ได้แล้ว' } },
     'WTT':       { color: '#9333ea', label: { th: 'แลก' },        stamp: { en: 'TRADED', th: 'แลกแล้ว' } },
-    'WTS / WTT': { color: '#0d9488', label: { th: 'ขาย / แลก' },  stamp: { en: 'SOLD', th: 'ขายแล้ว' } },
+    'WTS / WTT': { color: '#0d9488', label: { th: 'ขาย / แลก' },  stamp: { en: 'SOLD', th: 'ออกแล้ว' } },
     'WTB / WTS': { color: '#ea580c', label: { th: 'ซื้อ / ขาย' }, stamp: { en: 'DONE', th: 'เรียบร้อย' } }
   };
 
