@@ -7,10 +7,13 @@ Add your card photos, type in each card's rarity and price, then export a PNG or
 ## Features
 
 - **Add cards fast**: pick several photos at once, drag and drop them, paste with Ctrl/⌘+V, or paste an image link.
-- **Per-card details**: name, rarity (colour-coded badge for SAR, SIR, SR, UR, SEC, Alt Art, and more), price, quantity, and a short note (condition, set, PSA grade…).
+- **Card-first layout**: cards fill the grid with thin gaps. Rarity and price are tags on each card's bottom corners, and quantity sits top-right.
+- **Per-card details**: rarity (colour-coded for Vanguard's RRR, SP, OR, SEC… and other games' SAR, SIR, UR, Alt Art…), price, quantity, plus an optional name and note shown as a caption under the card.
 - **Mark as sold or found**: puts a stamp over the card, so you can repost an updated list.
 - **Post header and footer**: WTS / WTB / WTT / WTS-WTT / WTB-WTS label, a title, notes (shipping, payment), and your contact details.
-- **Layout**: automatic or fixed columns, card / graded-slab / square shapes, fill or fit photos, and rotation for sideways phone shots.
+- **Card shape**: "Match my images" (the default) uses your uploads' own shape, so official scans like Vanguard's 350×510 are never cropped. Fixed Vanguard, standard 63×88, graded slab and square shapes are also available.
+- **Layout**: automatic or fixed columns, fill or fit photos, and rotation for sideways phone shots.
+- **Font**: [Kanit](https://fonts.google.com/specimen/Kanit) for Thai and English. Japanese text uses your system font.
 - **Themes**: six colour themes plus a custom price colour, and a currency symbol placed before or after the number.
 - **Split big lists** into several images (e.g. 9 or 12 cards each) so Facebook doesn't shrink one huge image. Each image is numbered 1/3, 2/3…
 - **Export** at up to 3000 px wide (2048 px is Facebook's sweet spot). Then download, copy to the clipboard and paste into a post, or share directly from your phone.
