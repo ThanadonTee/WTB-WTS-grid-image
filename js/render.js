@@ -7,17 +7,19 @@
 (function (global) {
   'use strict';
 
+  var FONT_FAMILY = 'Kanit';
   var FONT_STACK =
-    'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", ' +
+    '"' + FONT_FAMILY + '", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", ' +
     '"Noto Sans Thai", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", Arial, sans-serif';
+  var FONT_WEIGHTS = [400, 500, 600, 700];
 
   var THEMES = {
-    midnight: { name: 'Midnight', bg: '#0b1220', bg2: '#17223b', panel: '#1b2740', imgBg: '#0f172a', text: '#f8fafc', muted: '#9fb0c9', accent: '#facc15', line: 'rgba(255,255,255,0.10)' },
-    clean:    { name: 'Clean white', bg: '#eef2f7', bg2: '#dfe6ef', panel: '#ffffff', imgBg: '#f1f5f9', text: '#0f172a', muted: '#64748b', accent: '#dc2626', line: 'rgba(15,23,42,0.12)' },
-    electric: { name: 'Electric yellow', bg: '#fde047', bg2: '#fbbf24', panel: '#fffbeb', imgBg: '#fef3c7', text: '#1c1917', muted: '#57534e', accent: '#dc2626', line: 'rgba(28,25,23,0.18)' },
-    ocean:    { name: 'Ocean', bg: '#0c4a6e', bg2: '#082f49', panel: '#0e5a85', imgBg: '#083350', text: '#f0f9ff', muted: '#bae6fd', accent: '#fbbf24', line: 'rgba(255,255,255,0.14)' },
-    sakura:   { name: 'Sakura', bg: '#fdf2f8', bg2: '#fbcfe8', panel: '#ffffff', imgBg: '#fdf2f8', text: '#500724', muted: '#9d174d', accent: '#db2777', line: 'rgba(80,7,36,0.12)' },
-    carbon:   { name: 'Carbon', bg: '#111111', bg2: '#1f1f1f', panel: '#262626', imgBg: '#171717', text: '#fafafa', muted: '#a3a3a3', accent: '#22c55e', line: 'rgba(255,255,255,0.10)' }
+    midnight: { name: 'Midnight', bg: '#0b1220', bg2: '#141d33', imgBg: '#1b2740', text: '#f8fafc', muted: '#9fb0c9', accent: '#facc15' },
+    clean:    { name: 'Clean white', bg: '#f4f6fa', bg2: '#e6ebf2', imgBg: '#dfe5ee', text: '#0f172a', muted: '#5b6b82', accent: '#dc2626' },
+    electric: { name: 'Electric yellow', bg: '#fde047', bg2: '#fbbf24', imgBg: '#fef3c7', text: '#1c1917', muted: '#57534e', accent: '#dc2626' },
+    ocean:    { name: 'Ocean', bg: '#0c4a6e', bg2: '#082f49', imgBg: '#0e5a85', text: '#f0f9ff', muted: '#bae6fd', accent: '#fbbf24' },
+    sakura:   { name: 'Sakura', bg: '#fdf2f8', bg2: '#fbcfe8', imgBg: '#ffffff', text: '#500724', muted: '#9d174d', accent: '#db2777' },
+    carbon:   { name: 'Carbon', bg: '#0f0f0f', bg2: '#1a1a1a', imgBg: '#262626', text: '#fafafa', muted: '#a3a3a3', accent: '#22c55e' }
   };
 
   var MODES = {
@@ -28,8 +30,9 @@
     'WTB / WTS': { color: '#ea580c', stamp: 'DONE' }
   };
 
-  // Height / width of the picture area for each card shape.
-  var SHAPES = { card: 88 / 63, slab: 1.7, square: 1 };
+  // Height / width of the picture area for each fixed card shape.
+  // ("auto" is resolved by the app from the uploaded images.)
+  var SHAPES = { vanguard: 510 / 350, card: 88 / 63, slab: 1.7, square: 1 };
 
   // Common rarity codes across Pokémon, One Piece, Yu-Gi-Oh!, MTG, Lorcana, etc.
   var RARITY_COLORS = [
@@ -43,6 +46,8 @@
     [/^(ur|ultra|sec|secret|secret rare|scr|hr|hyper rare|gold|ghost|starlight|qcsr|mr|manga|manga rare)$/i, '#b45309'],
     [/^(l|leader)$/i, '#dc2626'],
     [/^(sp|special|alt|alt art|aa|parallel|p|m|mythic|mythic rare|legendary)$/i, '#ea580c'],
+    [/^(or|origin rare|lr|zr|dsr|ffr|fr|exsec|exrrr|vr|svr|sgr|sns|gr)$/i, '#a16207'],
+    [/^(td|trial deck)$/i, '#64748b'],
     [/^(pr|promo)$/i, '#475569']
   ];
 
@@ -149,13 +154,14 @@
   }
 
   // Picks a column count that leaves few empty slots and keeps the image roughly portrait.
-  function autoColumns(n) {
+  function autoColumns(n, ratio) {
     if (n <= 1) return 1;
+    var cellAspect = (ratio || SHAPES.card) + 0.05;
     var best = 1, bestScore = Infinity;
     for (var c = 1; c <= 6; c++) {
       var rows = Math.ceil(n / c);
       var empty = rows * c - n;
-      var aspect = (rows * 1.62) / c;
+      var aspect = (rows * cellAspect) / c;
       var score = empty * 0.6 + Math.abs(Math.log(aspect / 1.1)) * 2;
       if (score < bestScore) { bestScore = score; best = c; }
     }
@@ -182,7 +188,7 @@
   /*
    * opts = {
    *   settings, cards (this page), images (Map id -> drawable),
-   *   pageIndex, pageCount, width, cols
+   *   pageIndex, pageCount, width, cols, ratio (picture height / width)
    * }
    */
   function computeLayout(opts) {
@@ -191,108 +197,95 @@
     var u = W / 1000;
     var ctx = measureCtx();
     var cards = opts.cards;
-    var L = { W: W, u: u, pad: 36 * u };
-    var pad = L.pad;
+    var pad = 28 * u;
+    var L = { W: W, u: u, pad: pad };
 
     // ---- Header: [MODE] Title ........ 1/3
     var modeLabel = s.mode || 'WTS';
-    L.pillFont = font(800, 40 * u);
+    L.pillFont = font(600, 30 * u);
     ctx.font = L.pillFont;
-    L.pillW = ctx.measureText(modeLabel).width + 56 * u;
-    L.pillH = 68 * u;
+    L.pillW = ctx.measureText(modeLabel).width + 40 * u;
+    L.pillH = 54 * u;
 
     L.pageLabel = opts.pageCount > 1 ? (opts.pageIndex + 1) + '/' + opts.pageCount : '';
-    L.pageFont = font(700, 26 * u);
+    L.pageFont = font(500, 24 * u);
     ctx.font = L.pageFont;
-    L.pageW = L.pageLabel ? ctx.measureText(L.pageLabel).width + 36 * u : 0;
-    L.pageH = 48 * u;
+    L.pageW = L.pageLabel ? ctx.measureText(L.pageLabel).width : 0;
 
-    L.titleX = pad + L.pillW + 22 * u;
-    L.titleFont = font(800, 44 * u);
-    L.titleLH = 54 * u;
+    L.titleX = pad + L.pillW + 18 * u;
+    L.titleFont = font(600, 38 * u);
+    L.titleLH = 48 * u;
     ctx.font = L.titleFont;
-    var titleMaxW = W - L.titleX - pad - (L.pageW ? L.pageW + 16 * u : 0);
+    var titleMaxW = W - L.titleX - pad - (L.pageW ? L.pageW + 20 * u : 0);
     var title = String(s.title || '').trim();
     L.titleLines = title ? wrapLines(ctx, title, titleMaxW, 2) : [];
     L.headerY = pad;
     L.row1H = Math.max(L.pillH, L.titleLines.length * L.titleLH);
 
     var y = pad + L.row1H;
-    L.notesFont = font(500, 26 * u);
-    L.notesLH = 36 * u;
+    L.notesFont = font(400, 24 * u);
+    L.notesLH = 33 * u;
     ctx.font = L.notesFont;
     var notes = String(s.notes || '').trim();
-    L.noteLines = notes ? wrapLines(ctx, notes, W - 2 * pad, 8) : [];
+    L.noteLines = notes ? wrapLines(ctx, notes, W - 2 * pad, 6) : [];
     if (L.noteLines.length) {
-      y += 18 * u;
+      y += 12 * u;
       L.notesY = y;
       y += L.noteLines.length * L.notesLH;
     }
-    y += 28 * u;
+    y += 22 * u;
 
-    // ---- Grid
+    // ---- Grid: pictures nearly edge to edge, details as tags on the picture.
     var n = cards.length;
-    var cols = Math.max(1, opts.cols || autoColumns(n));
-    var gap = 18 * u;
+    var ratio = opts.ratio || SHAPES.card;
+    var cols = Math.max(1, opts.cols || autoColumns(n, ratio));
+    var gap = 10 * u;
     var cw = (W - 2 * pad - (cols - 1) * gap) / cols;
-    var cs = Math.min(cw, 400 * u); // text scale inside a cell
-    var ip = Math.max(cs * 0.045, 4 * u);
-    var imgW = cw - 2 * ip;
-    var imgH = imgW * (SHAPES[s.shape] || SHAPES.card);
-
+    var cs = Math.min(cw, 420 * u); // scale for text and tags
     var g = {
-      cols: cols, gap: gap, cw: cw, cs: cs, ip: ip, imgW: imgW, imgH: imgH,
-      nameFont: font(700, cs * 0.072), nameLH: cs * 0.09,
-      noteFont: font(500, cs * 0.058), noteLH: cs * 0.075,
-      priceFont: font(800, cs * 0.11), rowH: cs * 0.13,
-      badgeFont: font(800, cs * 0.06), qtyFont: font(800, cs * 0.068)
+      cols: cols, gap: gap, cw: cw, cs: cs, imgH: cw * ratio,
+      tagH: cs * 0.125, tagM: cs * 0.04, tagPad: cs * 0.04,
+      priceFont: font(600, cs * 0.085), badgeFont: font(600, cs * 0.066), qtyFont: font(600, cs * 0.07),
+      nameFont: font(500, cs * 0.072), nameLH: cs * 0.092,
+      noteFont: font(400, cs * 0.06), noteLH: cs * 0.078
     };
 
-    var nameRows = 0, hasNote = false, hasRow = false;
+    var nameRows = 0, hasNote = false;
     g.items = cards.map(function (card) {
       var it = { card: card, nameLines: [], note: '', price: '', rarity: '', qty: '' };
       if (s.showName && String(card.name || '').trim()) {
         ctx.font = g.nameFont;
-        it.nameLines = wrapLines(ctx, String(card.name).trim(), imgW, 2);
+        it.nameLines = wrapLines(ctx, String(card.name).trim(), cw, 2);
         nameRows = Math.max(nameRows, it.nameLines.length);
       }
       if (s.showNote && String(card.note || '').trim()) {
         ctx.font = g.noteFont;
-        it.note = ellipsize(ctx, String(card.note).trim().replace(/\s+/g, ' '), imgW);
+        it.note = ellipsize(ctx, String(card.note).trim().replace(/\s+/g, ' '), cw);
         hasNote = true;
       }
       if (s.showPrice) it.price = formatPrice(card.price, s);
       if (s.showRarity) it.rarity = String(card.rarity || '').trim();
       if (s.showQty && Number(card.qty) > 1) it.qty = '×' + Math.floor(Number(card.qty));
-      if (it.price || it.rarity || it.qty) hasRow = true;
       return it;
     });
 
-    var textBlock = nameRows * g.nameLH + (hasNote ? g.noteLH : 0);
-    g.nameRows = nameRows;
-    g.hasNote = hasNote;
-    g.hasRow = hasRow;
-    g.infoH = 0;
-    if (textBlock || hasRow) {
-      g.infoH = ip * 0.9 + textBlock + (hasRow ? (textBlock ? cs * 0.025 : 0) + g.rowH : 0);
-    }
-    g.cellH = ip + imgH + g.infoH + ip;
-    var rows = Math.max(1, Math.ceil(n / cols));
-    g.rows = rows;
+    // Optional caption under each picture, only when some card on the page has one.
+    var captionText = nameRows * g.nameLH + (hasNote ? g.noteLH : 0);
+    g.captionH = captionText ? cs * 0.035 + captionText : 0;
+    g.cellH = g.imgH + g.captionH;
+    g.rows = Math.max(1, Math.ceil(n / cols));
+    g.rowGap = g.captionH ? gap * 1.8 : gap;
     g.y = y;
-    var gridH = n ? rows * g.cellH + (rows - 1) * gap : 320 * u;
-    y += gridH;
+    y += n ? g.rows * g.cellH + (g.rows - 1) * g.rowGap : 320 * u;
     L.grid = g;
 
     // ---- Footer
-    L.footFont = font(600, 26 * u);
-    L.footLH = 36 * u;
+    L.footFont = font(500, 24 * u);
+    L.footLH = 33 * u;
     ctx.font = L.footFont;
     var contact = String(s.contact || '').trim();
     L.footLines = contact ? wrapLines(ctx, contact, W - 2 * pad, 3) : [];
     if (L.footLines.length) {
-      y += 30 * u;
-      L.dividerY = y;
       y += 22 * u;
       L.footY = y;
       y += L.footLines.length * L.footLH;
@@ -315,7 +308,6 @@
     var ctx = canvas.getContext('2d');
     ctx.textBaseline = 'middle';
 
-    // Background
     var bg = ctx.createLinearGradient(0, 0, 0, H);
     bg.addColorStop(0, theme.bg);
     bg.addColorStop(1, theme.bg2);
@@ -325,12 +317,12 @@
     // Mode pill
     var pillY = L.headerY + (L.row1H - L.pillH) / 2;
     ctx.fillStyle = mode.color;
-    roundRect(ctx, pad, pillY, L.pillW, L.pillH, 16 * u);
+    roundRect(ctx, pad, pillY, L.pillW, L.pillH, 12 * u);
     ctx.fill();
     ctx.fillStyle = readableOn(mode.color);
     ctx.font = L.pillFont;
     ctx.textAlign = 'center';
-    ctx.fillText(s.mode || 'WTS', pad + L.pillW / 2, pillY + L.pillH / 2 + 1 * u);
+    ctx.fillText(s.mode || 'WTS', pad + L.pillW / 2, pillY + L.pillH / 2 + 2 * u);
 
     // Title
     ctx.textAlign = 'left';
@@ -338,21 +330,15 @@
     ctx.font = L.titleFont;
     var titleTop = L.headerY + (L.row1H - L.titleLines.length * L.titleLH) / 2;
     L.titleLines.forEach(function (line, i) {
-      ctx.fillText(line, L.titleX, titleTop + L.titleLH * (i + 0.5));
+      ctx.fillText(line, L.titleX, titleTop + L.titleLH * (i + 0.5) + 2 * u);
     });
 
     // Page label
     if (L.pageLabel) {
-      var px = W - pad - L.pageW;
-      var py = L.headerY + (L.row1H - L.pageH) / 2;
-      ctx.strokeStyle = theme.muted;
-      ctx.lineWidth = 2.5 * u;
-      roundRect(ctx, px, py, L.pageW, L.pageH, L.pageH / 2);
-      ctx.stroke();
       ctx.fillStyle = theme.muted;
       ctx.font = L.pageFont;
-      ctx.textAlign = 'center';
-      ctx.fillText(L.pageLabel, px + L.pageW / 2, py + L.pageH / 2 + 1 * u);
+      ctx.textAlign = 'right';
+      ctx.fillText(L.pageLabel, W - pad, L.headerY + L.row1H / 2 + 2 * u);
       ctx.textAlign = 'left';
     }
 
@@ -361,21 +347,23 @@
       ctx.fillStyle = theme.muted;
       ctx.font = L.notesFont;
       L.noteLines.forEach(function (line, i) {
-        ctx.fillText(line, pad, L.notesY + L.notesLH * (i + 0.5));
+        ctx.fillText(line, pad, L.notesY + L.notesLH * (i + 0.5) + 1 * u);
       });
     }
 
     // Grid
     var g = L.grid;
     if (!g.items.length) {
-      ctx.strokeStyle = theme.line;
-      ctx.lineWidth = 4 * u;
-      ctx.setLineDash([18 * u, 14 * u]);
-      roundRect(ctx, pad, g.y, W - 2 * pad, 320 * u, 24 * u);
+      ctx.strokeStyle = theme.muted;
+      ctx.globalAlpha = 0.4;
+      ctx.lineWidth = 3 * u;
+      ctx.setLineDash([16 * u, 12 * u]);
+      roundRect(ctx, pad, g.y, W - 2 * pad, 320 * u, 20 * u);
       ctx.stroke();
       ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
       ctx.fillStyle = theme.muted;
-      ctx.font = font(600, 30 * u);
+      ctx.font = font(500, 30 * u);
       ctx.textAlign = 'center';
       ctx.fillText('Add card images to fill the grid', W / 2, g.y + 160 * u);
       ctx.textAlign = 'left';
@@ -385,23 +373,17 @@
       var col = idx % g.cols;
       var row = Math.floor(idx / g.cols);
       var x = pad + col * (g.cw + g.gap);
-      var y = g.y + row * (g.cellH + g.gap);
+      var y = g.y + row * (g.cellH + g.rowGap);
       drawCell(ctx, it, x, y, g, s, theme, accent, mode, opts.images, u);
     });
 
     // Footer
     if (L.footLines.length) {
-      ctx.strokeStyle = theme.line;
-      ctx.lineWidth = 2 * u;
-      ctx.beginPath();
-      ctx.moveTo(pad, L.dividerY);
-      ctx.lineTo(W - pad, L.dividerY);
-      ctx.stroke();
       ctx.fillStyle = theme.text;
       ctx.font = L.footFont;
       ctx.textAlign = 'center';
       L.footLines.forEach(function (line, i) {
-        ctx.fillText(line, W / 2, L.footY + L.footLH * (i + 0.5));
+        ctx.fillText(line, W / 2, L.footY + L.footLH * (i + 0.5) + 1 * u);
       });
       ctx.textAlign = 'left';
     }
@@ -409,114 +391,114 @@
     return { width: W, height: H };
   }
 
+  // A small rounded label with a soft shadow so it reads on any card art.
+  function drawTag(ctx, text, x, y, h, padX, bg, fg, fontStr, u) {
+    ctx.font = fontStr;
+    var w = ctx.measureText(text).width + padX * 2;
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.35)';
+    ctx.shadowBlur = 8 * u;
+    ctx.shadowOffsetY = 2 * u;
+    ctx.fillStyle = bg;
+    roundRect(ctx, x, y, w, h, h * 0.3);
+    ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = fg;
+    ctx.textAlign = 'left';
+    ctx.fillText(text, x + padX, y + h / 2 + h * 0.04);
+    return w;
+  }
+
+  function measureTag(ctx, text, padX, fontStr) {
+    ctx.font = fontStr;
+    return ctx.measureText(text).width + padX * 2;
+  }
+
   function drawCell(ctx, it, x, y, g, s, theme, accent, mode, images, u) {
     var card = it.card;
-    var cs = g.cs, ip = g.ip;
-
-    // Panel
-    ctx.fillStyle = theme.panel;
-    roundRect(ctx, x, y, g.cw, g.cellH, cs * 0.05);
-    ctx.fill();
+    var cw = g.cw, ih = g.imgH;
 
     // Picture
-    var ix = x + ip, iy = y + ip;
-    var radius = g.imgW * 0.045;
     ctx.save();
-    roundRect(ctx, ix, iy, g.imgW, g.imgH, radius);
+    roundRect(ctx, x, y, cw, ih, cw * 0.035);
     ctx.clip();
     ctx.fillStyle = theme.imgBg;
-    ctx.fillRect(ix, iy, g.imgW, g.imgH);
+    ctx.fillRect(x, y, cw, ih);
     var img = images && images.get(card.id);
     if (img) {
-      drawImageFit(ctx, img, card.rotation, ix, iy, g.imgW, g.imgH, s.fit);
+      drawImageFit(ctx, img, card.rotation, x, y, cw, ih, s.fit);
     } else {
       ctx.fillStyle = theme.muted;
-      ctx.font = font(600, cs * 0.06);
+      ctx.font = font(500, g.cs * 0.06);
       ctx.textAlign = 'center';
-      ctx.fillText('No image', ix + g.imgW / 2, iy + g.imgH / 2);
+      ctx.fillText('No image', x + cw / 2, y + ih / 2);
       ctx.textAlign = 'left';
     }
 
     if (card.sold) {
       ctx.fillStyle = 'rgba(0,0,0,0.5)';
-      ctx.fillRect(ix, iy, g.imgW, g.imgH);
+      ctx.fillRect(x, y, cw, ih);
       var stamp = mode.stamp;
       ctx.save();
-      ctx.translate(ix + g.imgW / 2, iy + g.imgH / 2);
+      ctx.translate(x + cw / 2, y + ih / 2);
       ctx.rotate(-0.3);
-      var fs = g.imgW * 0.17;
-      ctx.font = font(900, fs);
-      var sw = Math.min(ctx.measureText(stamp).width + fs * 0.8, g.imgW * 1.05);
+      var fs = cw * 0.16;
+      ctx.font = font(700, fs);
+      var sw = Math.min(ctx.measureText(stamp).width + fs * 0.8, cw * 1.05);
       var sh = fs * 1.45;
       ctx.fillStyle = 'rgba(255,255,255,0.94)';
       roundRect(ctx, -sw / 2, -sh / 2, sw, sh, fs * 0.2);
       ctx.fill();
       ctx.strokeStyle = '#dc2626';
-      ctx.lineWidth = fs * 0.12;
+      ctx.lineWidth = fs * 0.1;
       roundRect(ctx, -sw / 2 + fs * 0.12, -sh / 2 + fs * 0.12, sw - fs * 0.24, sh - fs * 0.24, fs * 0.12);
       ctx.stroke();
       ctx.fillStyle = '#dc2626';
       ctx.textAlign = 'center';
-      ctx.fillText(stamp, 0, fs * 0.05, sw - fs * 0.5);
+      ctx.fillText(stamp, 0, fs * 0.06, sw - fs * 0.5);
       ctx.restore();
     }
     ctx.restore();
 
-    // Info: name and note flow from the top, the price row sits at the bottom
-    // so prices line up across a row even when names wrap differently.
-    var ty = iy + g.imgH + ip * 0.9;
-    ctx.textAlign = 'left';
-    if (it.nameLines.length) {
-      ctx.fillStyle = theme.text;
-      ctx.font = g.nameFont;
-      it.nameLines.forEach(function (line, i) {
-        ctx.fillText(line, ix, ty + g.nameLH * (i + 0.5));
-      });
-      ty += it.nameLines.length * g.nameLH;
+    // Tags on the picture: rarity bottom-left, price bottom-right, quantity top-right.
+    var m = g.tagM, th = g.tagH, tp = g.tagPad;
+    var tagY = y + ih - m - th;
+    var avail = cw - 2 * m;
+    var priceW = 0;
+    if (it.price) {
+      ctx.font = g.priceFont;
+      var price = ellipsize(ctx, it.price, avail - 2 * tp);
+      priceW = measureTag(ctx, price, tp, g.priceFont);
+      drawTag(ctx, price, x + cw - m - priceW, tagY, th, tp, accent, readableOn(accent), g.priceFont, u);
     }
-    if (it.note) {
-      ctx.fillStyle = theme.muted;
-      ctx.font = g.noteFont;
-      ctx.fillText(it.note, ix, ty + g.noteLH / 2);
-    }
-    if (g.hasRow) {
-      var cy = y + g.cellH - ip - g.rowH / 2;
-      var right = ix + g.imgW;
-
-      var priceW = 0;
-      if (it.price) {
-        ctx.font = g.priceFont;
-        var price = ellipsize(ctx, it.price, g.imgW);
-        priceW = ctx.measureText(price).width;
-        ctx.fillStyle = accent;
-        ctx.textAlign = 'right';
-        ctx.fillText(price, right, cy + 1 * u);
-        ctx.textAlign = 'left';
-      }
-
-      var leftMax = g.imgW - priceW - (priceW ? cs * 0.04 : 0);
-      var lx = ix;
-      if (it.rarity && leftMax > cs * 0.12) {
+    if (it.rarity) {
+      var room = avail - priceW - (priceW ? m * 0.6 : 0);
+      if (room > th) {
         ctx.font = g.badgeFont;
-        var bp = cs * 0.03;
-        var label = ellipsize(ctx, it.rarity, Math.max(0, leftMax - 2 * bp));
-        if (label) {
-          var bw = ctx.measureText(label).width + 2 * bp;
-          var bh = g.rowH * 0.74;
-          ctx.fillStyle = rarityColor(it.rarity);
-          roundRect(ctx, lx, cy - bh / 2, bw, bh, bh * 0.28);
-          ctx.fill();
-          ctx.fillStyle = '#ffffff';
-          ctx.fillText(label, lx + bp, cy + 1 * u);
-          lx += bw + cs * 0.03;
-        }
+        var label = ellipsize(ctx, it.rarity, room - 2 * tp * 0.8);
+        if (label) drawTag(ctx, label, x + m, tagY, th, tp * 0.8, rarityColor(it.rarity), '#ffffff', g.badgeFont, u);
       }
-      if (it.qty) {
-        ctx.font = g.qtyFont;
-        if (lx + ctx.measureText(it.qty).width <= ix + leftMax) {
-          ctx.fillStyle = theme.text;
-          ctx.fillText(it.qty, lx, cy + 1 * u);
-        }
+    }
+    if (it.qty) {
+      var qw = measureTag(ctx, it.qty, tp * 0.8, g.qtyFont);
+      drawTag(ctx, it.qty, x + cw - m - qw, y + m, th, tp * 0.8, 'rgba(15,23,42,0.82)', '#ffffff', g.qtyFont, u);
+    }
+
+    // Caption
+    if (g.captionH) {
+      var ty = y + ih + g.cs * 0.035;
+      if (it.nameLines.length) {
+        ctx.fillStyle = theme.text;
+        ctx.font = g.nameFont;
+        it.nameLines.forEach(function (line, i) {
+          ctx.fillText(line, x, ty + g.nameLH * (i + 0.5) + 1 * u);
+        });
+        ty += it.nameLines.length * g.nameLH;
+      }
+      if (it.note) {
+        ctx.fillStyle = theme.muted;
+        ctx.font = g.noteFont;
+        ctx.fillText(it.note, x, ty + g.noteLH / 2 + 1 * u);
       }
     }
   }
@@ -525,6 +507,8 @@
     THEMES: THEMES,
     MODES: MODES,
     SHAPES: SHAPES,
+    FONT_FAMILY: FONT_FAMILY,
+    FONT_WEIGHTS: FONT_WEIGHTS,
     autoColumns: autoColumns,
     computeLayout: computeLayout,
     drawPage: drawPage,

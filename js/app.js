@@ -7,6 +7,10 @@
   var PREVIEW_MAX_WIDTH = 1200;
   var MAX_IMAGE_SIDE = 2000;
 
+  // Bump when a default changes enough that old saved values should be dropped.
+  var SETTINGS_VERSION = 2;
+  var RESET_ON_UPGRADE = ['shape', 'theme', 'accent'];
+
   var DEFAULTS = {
     mode: 'WTS',
     title: '',
@@ -14,7 +18,7 @@
     contact: '',
     columns: 'auto',
     perImage: 'all',
-    shape: 'card',
+    shape: 'auto',
     fit: 'cover',
     theme: 'midnight',
     accent: R.THEMES.midnight.accent,
@@ -67,7 +71,7 @@
   }
 
   var saveSettings = debounce(function () {
-    safe(Store.set('settings', state.settings));
+    safe(Store.set('settings', Object.assign({ version: SETTINGS_VERSION }, state.settings)));
   }, 300);
 
   var saveCards = debounce(function () {
@@ -455,10 +459,45 @@
     return pages;
   }
 
-  function resolveColumns(pages) {
+  // Picture height / width. "auto" follows the uploaded images (median shape,
+  // ignoring odd ones out) so cards like Vanguard's 350×510 scans are never cropped.
+  function resolveRatio() {
+    var shape = state.settings.shape;
+    if (R.SHAPES[shape]) return R.SHAPES[shape];
+    var ratios = [];
+    state.cards.forEach(function (card) {
+      var entry = images.get(card.id);
+      if (!entry || !entry.img.width || !entry.img.height) return;
+      var sideways = (card.rotation || 0) % 180 !== 0;
+      var r = sideways ? entry.img.width / entry.img.height : entry.img.height / entry.img.width;
+      ratios.push(r);
+    });
+    if (!ratios.length) return R.SHAPES.card;
+    ratios.sort(function (a, b) { return a - b; });
+    var median = ratios[Math.floor(ratios.length / 2)];
+    return Math.min(2, Math.max(0.5, median));
+  }
+
+  function resolveColumns(pages, ratio) {
     var c = state.settings.columns;
     if (c && c !== 'auto') return Number(c);
-    return R.autoColumns(pages[0].length);
+    return R.autoColumns(pages[0].length, ratio);
+  }
+
+  // Waits for the image font so exports never fall back to a system font.
+  // Includes Thai and ฿ so those font subsets load too.
+  var fontsPromise = null;
+  function ensureFonts() {
+    if (!fontsPromise) {
+      if (!document.fonts || !document.fonts.load) {
+        fontsPromise = Promise.resolve();
+      } else {
+        fontsPromise = Promise.all(R.FONT_WEIGHTS.map(function (w) {
+          return document.fonts.load(w + ' 32px "' + R.FONT_FAMILY + '"', 'Aa1฿กข');
+        })).catch(function () {});
+      }
+    }
+    return fontsPromise;
   }
 
   function drawables() {
@@ -469,7 +508,8 @@
 
   function renderPages(width) {
     var pages = paginate();
-    var cols = resolveColumns(pages);
+    var ratio = resolveRatio();
+    var cols = resolveColumns(pages, ratio);
     var imgs = drawables();
     return pages.map(function (cards, i) {
       var canvas = document.createElement('canvas');
@@ -480,7 +520,8 @@
         pageIndex: i,
         pageCount: pages.length,
         width: width,
-        cols: cols
+        cols: cols,
+        ratio: ratio
       });
       return { canvas: canvas, width: size.width, height: size.height };
     });
@@ -519,9 +560,10 @@
 
     var n = state.cards.length;
     var pages = paginate();
+    var ratio = resolveRatio();
     var exportH = R.computeLayout({
       settings: state.settings, cards: pages[0], pageIndex: 0, pageCount: pages.length,
-      width: exportW, cols: resolveColumns(pages)
+      width: exportW, cols: resolveColumns(pages, ratio), ratio: ratio
     }).H;
     var info = n
       ? n + ' card' + (n === 1 ? '' : 's') + ' · ' + rendered.length + ' image' + (rendered.length === 1 ? '' : 's') +
@@ -575,9 +617,13 @@
 
     // Let the button repaint before the heavy render.
     setTimeout(function () {
-      var pages = renderPages(Number(s.exportWidth) || 2048);
-      Promise.all(pages.map(function (p) { return canvasToBlob(p.canvas, type, 0.92); }))
-        .then(function (blobs) {
+      ensureFonts().then(function () {
+        var pages = renderPages(Number(s.exportWidth) || 2048);
+        return Promise.all(pages.map(function (p) { return canvasToBlob(p.canvas, type, 0.92); }))
+          .then(function (blobs) { return { pages: pages, blobs: blobs }; });
+      })
+        .then(function (res) {
+          var pages = res.pages, blobs = res.blobs;
           clearExported();
           var base = fileBase();
           exported = blobs.map(function (blob, i) {
@@ -709,9 +755,12 @@
       .then(function (res) {
         var saved = res[0], cards = res[1];
         if (saved && typeof saved === 'object') {
+          var outdated = saved.version !== SETTINGS_VERSION;
           Object.keys(DEFAULTS).forEach(function (k) {
+            if (outdated && RESET_ON_UPGRADE.indexOf(k) >= 0) return;
             if (saved[k] !== undefined && typeof saved[k] === typeof DEFAULTS[k]) state.settings[k] = saved[k];
           });
+          if (!R.SHAPES[state.settings.shape]) state.settings.shape = 'auto';
           if (!R.THEMES[state.settings.theme]) state.settings.theme = DEFAULTS.theme;
           if (!R.MODES[state.settings.mode]) state.settings.mode = DEFAULTS.mode;
         }
@@ -739,8 +788,8 @@
     setupCardList();
     setupInputs();
     setupExport();
-    var fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
-    Promise.all([restore(), fontsReady]).then(function () {
+    Promise.all([restore(), ensureFonts()]).then(function () {
+      saveSettings(); // stamps the current settings version
       syncSettingsUI();
       renderCardList();
       renderPreview();

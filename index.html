@@ -7,6 +7,9 @@
   <meta name="description" content="Make clean WTB / WTS card grid images for Facebook groups: add card photos, rarity and price, then export a PNG or JPG.">
   <meta name="theme-color" content="#0b1220">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2316a34a'/%3E%3Cg fill='%23fff'%3E%3Crect x='6' y='6' width='9' height='9' rx='2'/%3E%3Crect x='17' y='6' width='9' height='9' rx='2'/%3E%3Crect x='6' y='17' width='9' height='9' rx='2'/%3E%3Crect x='17' y='17' width='9' height='9' rx='2'/%3E%3C/g%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -90,7 +93,9 @@
           <label class="field">
             <span class="label">Card shape</span>
             <select data-setting="shape">
-              <option value="card">Card (63×88)</option>
+              <option value="auto">Match my images</option>
+              <option value="vanguard">Vanguard (350×510)</option>
+              <option value="card">Standard card (63×88)</option>
               <option value="slab">Graded slab</option>
               <option value="square">Square</option>
             </select>
@@ -181,10 +186,13 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <datalist id="rarity-list">
-    <option value="C"><option value="U"><option value="R"><option value="RR"><option value="RRR">
+    <option value="RRR"><option value="RR"><option value="R"><option value="C"><option value="OR">
+    <option value="SP"><option value="SEC"><option value="LR"><option value="ZR"><option value="DSR">
+    <option value="FFR"><option value="EXRRR"><option value="EXSEC"><option value="VR"><option value="SVR">
+    <option value="TD"><option value="PR"><option value="U">
     <option value="SR"><option value="SSR"><option value="UR"><option value="AR"><option value="SAR">
     <option value="IR"><option value="SIR"><option value="CHR"><option value="CSR"><option value="HR">
-    <option value="SEC"><option value="L"><option value="SP"><option value="Alt Art"><option value="Manga">
+    <option value="L"><option value="Alt Art"><option value="Manga">
     <option value="Promo"><option value="Common"><option value="Uncommon"><option value="Rare">
     <option value="Holo Rare"><option value="Ultra Rare"><option value="Secret Rare"><option value="Mythic">
     <option value="Enchanted"><option value="Starlight"><option value="Ghost">
