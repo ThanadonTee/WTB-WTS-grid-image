@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WTB/WTS Grid Maker</title>
+  <meta name="description" content="Make clean WTB / WTS card grid images for Facebook groups: add card photos, rarity and price, then export a PNG or JPG.">
+  <meta name="theme-color" content="#0b1220">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2316a34a'/%3E%3Cg fill='%23fff'%3E%3Crect x='6' y='6' width='9' height='9' rx='2'/%3E%3Crect x='17' y='6' width='9' height='9' rx='2'/%3E%3Crect x='6' y='17' width='9' height='9' rx='2'/%3E%3Crect x='17' y='17' width='9' height='9' rx='2'/%3E%3C/g%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span>WTB/WTS Grid Maker</span>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" id="btn-clear" class="btn ghost">Start over</button>
+      <button type="button" id="btn-export" class="btn primary" disabled>Export image</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <div class="editor">
+      <section class="panel" aria-labelledby="h-post">
+        <h2 id="h-post">Post</h2>
+        <div class="field">
+          <span class="label" id="mode-label">Type</span>
+          <div class="segmented" id="mode" role="radiogroup" aria-labelledby="mode-label">
+            <button type="button" role="radio" data-value="WTS">WTS</button>
+            <button type="button" role="radio" data-value="WTB">WTB</button>
+            <button type="button" role="radio" data-value="WTT">WTT</button>
+            <button type="button" role="radio" data-value="WTS / WTT">WTS / WTT</button>
+            <button type="button" role="radio" data-value="WTB / WTS">WTB / WTS</button>
+          </div>
+        </div>
+        <label class="field">
+          <span class="label">Title</span>
+          <input type="text" data-setting="title" maxlength="120" placeholder="e.g. Pokémon TCG — Japanese singles">
+        </label>
+        <label class="field">
+          <span class="label">Notes <small>shown under the title</small></span>
+          <textarea data-setting="notes" rows="3" placeholder="Shipping, payment methods, meet-up spots…"></textarea>
+        </label>
+        <label class="field">
+          <span class="label">Footer <small>contact, username, etc.</small></span>
+          <input type="text" data-setting="contact" maxlength="200" placeholder="DM me · Line: yourid">
+        </label>
+      </section>
+
+      <section class="panel" aria-labelledby="h-cards">
+        <h2 id="h-cards">Cards <span id="card-count" class="count">0</span></h2>
+        <div id="dropzone" class="dropzone">
+          <button type="button" class="btn primary" id="btn-add">+ Add card images</button>
+          <p>or drag &amp; drop them here, or paste with Ctrl/⌘+V</p>
+        </div>
+        <input type="file" id="file-input" accept="image/*" multiple hidden>
+        <input type="file" id="replace-input" accept="image/*" hidden>
+        <form id="url-form" class="url-row">
+          <input type="url" id="url-input" placeholder="…or paste an image link" aria-label="Image link">
+          <button type="submit" class="btn">Add</button>
+        </form>
+        <ol id="card-list" class="card-list"></ol>
+        <p id="empty-hint" class="muted small">Tip: fill in rarity and price for each card. Leave price blank or type “Offer” / “Trade” if you like.</p>
+      </section>
+
+      <section class="panel" aria-labelledby="h-style">
+        <h2 id="h-style">Layout &amp; style</h2>
+        <div class="grid-fields">
+          <label class="field">
+            <span class="label">Columns</span>
+            <select data-setting="columns">
+              <option value="auto">Auto</option>
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+              <option value="7">7</option><option value="8">8</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="label">Cards per image</span>
+            <select data-setting="perImage">
+              <option value="all">All in one</option>
+              <option value="4">4</option><option value="6">6</option><option value="8">8</option>
+              <option value="9">9</option><option value="10">10</option><option value="12">12</option>
+              <option value="15">15</option><option value="16">16</option><option value="20">20</option>
+              <option value="24">24</option><option value="30">30</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="label">Card shape</span>
+            <select data-setting="shape">
+              <option value="card">Card (63×88)</option>
+              <option value="slab">Graded slab</option>
+              <option value="square">Square</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="label">Photo fit</span>
+            <select data-setting="fit">
+              <option value="cover">Fill (crop edges)</option>
+              <option value="contain">Show whole photo</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="label">Theme</span>
+            <select data-setting="theme" id="theme-select"></select>
+          </label>
+          <label class="field">
+            <span class="label">Price colour</span>
+            <input type="color" data-setting="accent">
+          </label>
+          <label class="field">
+            <span class="label">Currency</span>
+            <input type="text" data-setting="currency" list="currency-list" maxlength="6" placeholder="none">
+          </label>
+          <label class="field">
+            <span class="label">Currency position</span>
+            <select data-setting="currencyPos">
+              <option value="before">Before ($500)</option>
+              <option value="after">After (500 $)</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="label">Export width</span>
+            <select data-setting="exportWidth" data-type="number">
+              <option value="1080">1080 px</option>
+              <option value="1440">1440 px</option>
+              <option value="2048">2048 px (best for Facebook)</option>
+              <option value="3000">3000 px</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="label">File type</span>
+            <select data-setting="format">
+              <option value="png">PNG (sharpest)</option>
+              <option value="jpeg">JPG (smaller)</option>
+            </select>
+          </label>
+        </div>
+        <fieldset class="toggles">
+          <legend class="label">Show on each card</legend>
+          <label class="check"><input type="checkbox" data-setting="showName"> Name</label>
+          <label class="check"><input type="checkbox" data-setting="showNote"> Note</label>
+          <label class="check"><input type="checkbox" data-setting="showRarity"> Rarity</label>
+          <label class="check"><input type="checkbox" data-setting="showPrice"> Price</label>
+          <label class="check"><input type="checkbox" data-setting="showQty"> Quantity</label>
+        </fieldset>
+      </section>
+    </div>
+
+    <section class="preview" aria-labelledby="h-preview">
+      <div class="preview-head">
+        <h2 id="h-preview">Preview</h2>
+        <span id="preview-info" class="muted small"></span>
+      </div>
+      <p id="preview-warning" class="warning small" hidden></p>
+      <div id="preview-pages" class="preview-pages"></div>
+    </section>
+  </main>
+
+  <div class="mobile-bar">
+    <button type="button" class="btn primary" id="btn-export-mobile" disabled>Export image</button>
+  </div>
+
+  <div id="drop-overlay" class="drop-overlay" hidden><div>Drop images to add cards</div></div>
+
+  <dialog id="export-dialog" class="dialog" aria-labelledby="h-export">
+    <div class="dialog-head">
+      <h2 id="h-export">Your images are ready</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">✕</button>
+    </div>
+    <p class="muted small">Download them, copy one straight into a Facebook post, or share from your phone. On mobile you can also long-press an image to save it.</p>
+    <div id="export-list" class="export-list"></div>
+    <div class="dialog-foot">
+      <button type="button" id="btn-share-all" class="btn" hidden>Share all</button>
+      <button type="button" id="btn-download-all" class="btn primary">Download all</button>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <datalist id="rarity-list">
+    <option value="C"><option value="U"><option value="R"><option value="RR"><option value="RRR">
+    <option value="SR"><option value="SSR"><option value="UR"><option value="AR"><option value="SAR">
+    <option value="IR"><option value="SIR"><option value="CHR"><option value="CSR"><option value="HR">
+    <option value="SEC"><option value="L"><option value="SP"><option value="Alt Art"><option value="Manga">
+    <option value="Promo"><option value="Common"><option value="Uncommon"><option value="Rare">
+    <option value="Holo Rare"><option value="Ultra Rare"><option value="Secret Rare"><option value="Mythic">
+    <option value="Enchanted"><option value="Starlight"><option value="Ghost">
+  </datalist>
+  <datalist id="currency-list">
+    <option value="$"><option value="฿"><option value="€"><option value="£"><option value="¥">
+    <option value="₱"><option value="RM"><option value="S$"><option value="A$"><option value="C$">
+    <option value="₩"><option value="₹"><option value="Rp"><option value="₫"><option value="HK$">
+    <option value="NT$"><option value="THB"><option value="USD">
+  </datalist>
+
+  <template id="card-row-template">
+    <li class="card-row">
+      <button type="button" class="thumb" data-act="replace" title="Replace image" aria-label="Replace image"><img alt=""></button>
+      <div class="card-fields">
+        <input type="text" class="f-name" data-field="name" placeholder="Card name" aria-label="Card name">
+        <div class="row3">
+          <input type="text" data-field="rarity" list="rarity-list" placeholder="Rarity" aria-label="Rarity">
+          <input type="text" data-field="price" inputmode="decimal" placeholder="Price" aria-label="Price">
+          <input type="number" data-field="qty" min="1" max="999" aria-label="Quantity" title="Quantity">
+        </div>
+        <input type="text" data-field="note" placeholder="Note: condition, set, language…" aria-label="Note">
+        <div class="card-actions">
+          <label class="check"><input type="checkbox" data-field="sold"> <span class="sold-label">Sold</span></label>
+          <span class="spacer"></span>
+          <button type="button" class="icon-btn" data-act="up" title="Move up" aria-label="Move up">↑</button>
+          <button type="button" class="icon-btn" data-act="down" title="Move down" aria-label="Move down">↓</button>
+          <button type="button" class="icon-btn" data-act="rotate" title="Rotate 90°" aria-label="Rotate 90 degrees">⟳</button>
+          <button type="button" class="icon-btn" data-act="dup" title="Duplicate" aria-label="Duplicate">⧉</button>
+          <button type="button" class="icon-btn danger" data-act="del" title="Remove" aria-label="Remove">✕</button>
+        </div>
+      </div>
+    </li>
+  </template>
+
+  <script src="js/storage.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
