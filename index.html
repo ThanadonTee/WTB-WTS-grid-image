@@ -55,10 +55,14 @@
       <section class="panel" aria-labelledby="h-cards">
         <h2 id="h-cards">Cards <span id="card-count" class="count">0</span></h2>
         <div id="dropzone" class="dropzone">
-          <button type="button" class="btn primary" id="btn-add">+ Add card images</button>
+          <div class="dropzone-actions">
+            <button type="button" class="btn primary" id="btn-add">+ Add card images</button>
+            <button type="button" class="btn" id="btn-spread">Split a spread photo</button>
+          </div>
           <p>or drag &amp; drop them here, or paste with Ctrl/⌘+V</p>
         </div>
         <input type="file" id="file-input" accept="image/*" multiple hidden>
+        <input type="file" id="spread-input" accept="image/*" hidden>
         <input type="file" id="replace-input" accept="image/*" hidden>
         <form id="url-form" class="url-row">
           <input type="url" id="url-input" placeholder="…or paste an image link" aria-label="Image link">
@@ -190,6 +194,32 @@
     </div>
   </dialog>
 
+  <dialog id="split-dialog" class="dialog dialog-wide" aria-labelledby="h-split">
+    <div class="dialog-head">
+      <h2 id="h-split">Split a spread photo</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">✕</button>
+    </div>
+    <p id="split-hint" class="muted small"></p>
+    <div class="split-wrap">
+      <div id="split-stage" class="split-stage">
+        <img id="split-img" alt="Spread photo" draggable="false">
+        <div id="split-boxes"></div>
+      </div>
+    </div>
+    <div class="dialog-foot split-foot">
+      <div id="split-toolbar" class="split-toolbar" hidden>
+        <span class="label">Quantity</span>
+        <button type="button" class="icon-btn" id="split-qty-minus" aria-label="Fewer copies">−</button>
+        <output id="split-qty" class="split-qty"></output>
+        <button type="button" class="icon-btn" id="split-qty-plus" aria-label="More copies">+</button>
+        <button type="button" class="btn ghost" id="split-delete">Remove box</button>
+      </div>
+      <span class="spacer"></span>
+      <button type="button" class="btn ghost" id="split-clear">Clear boxes</button>
+      <button type="button" class="btn primary" id="split-add">Add cards</button>
+    </div>
+  </dialog>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <datalist id="rarity-list">
@@ -237,6 +267,7 @@
 
   <script src="js/storage.js"></script>
   <script src="js/render.js"></script>
+  <script src="js/spread.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

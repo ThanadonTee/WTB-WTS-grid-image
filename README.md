@@ -7,6 +7,7 @@ Add your card photos, type in each card's rarity and price, then export a PNG or
 ## Features
 
 - **Add cards fast**: pick several photos at once, drag and drop them, paste with Ctrl/⌘+V, or paste an image link.
+- **Split a spread photo**: upload one photo of your cards laid out on a mat (piles fanned to show how many copies you have) and the app finds each pile, crops the front card, and estimates the quantity from the fanned copies. Check the boxes before adding: drag to move, drag the corner to resize, tap an empty spot to add one, and fix quantities with − / +. Detection works best on a plain or dark mat with small gaps between piles.
 - **Card-first layout**: cards fill the grid with thin gaps. Rarity and price are tags on each card's bottom corners, and quantity (×1, ×2…) sits top-right.
 - **Per-card details**: rarity (colour-coded for Vanguard's RRR, SP, OR, SEC… and other games' SAR, SIR, UR, Alt Art…), price, quantity, plus an optional name and note shown as a caption under the card.
 - **Mark as sold or found**: puts a stamp over the card, so you can repost an updated list.
@@ -35,6 +36,7 @@ It's a static site with no build step and no dependencies.
 | `css/styles.css` | App styling (light/dark, mobile layout) |
 | `js/render.js` | Draws a grid page on a `<canvas>`. The preview and the export use the same code, so what you see is what you get. |
 | `js/app.js` | Editor UI, adding images, pagination, export / copy / share |
+| `js/spread.js` | Finds the cards in a spread photo and the box-editing screen |
 | `js/storage.js` | Small IndexedDB wrapper for auto-save |
 
 Large photos are scaled down to 2000 px on import to keep things fast.

@@ -134,8 +134,12 @@
     return { id: uid(), name: '', rarity: '', price: '', qty: 1, note: '', sold: false, rotation: 0 };
   }
 
-  function addBlobs(blobs) {
-    var list = Array.prototype.filter.call(blobs, function (b) {
+  // `fields` optionally gives starting card fields per blob (e.g. a quantity).
+  function addBlobs(blobs, fields) {
+    var list = Array.prototype.map.call(blobs, function (b, i) {
+      return { blob: b, fields: fields && fields[i] };
+    }).filter(function (item) {
+      var b = item.blob;
       return b && (/^image\//.test(b.type) || /\.(jpe?g|png|webp|gif|avif|bmp)$/i.test(b.name || ''));
     });
     if (!list.length) {
@@ -144,10 +148,10 @@
     }
     var failed = 0;
     // Prepare sequentially so cards keep the order they were picked in.
-    return list.reduce(function (p, blob) {
+    return list.reduce(function (p, item) {
       return p.then(function () {
-        return prepareImage(blob).then(function (prepared) {
-          var card = newCard();
+        return prepareImage(item.blob).then(function (prepared) {
+          var card = Object.assign(newCard(), item.fields);
           images.set(card.id, { blob: prepared.blob, img: prepared.img, url: URL.createObjectURL(prepared.blob) });
           state.cards.push(card);
           safe(Store.set('img:' + card.id, prepared.blob));
@@ -360,6 +364,19 @@
   function setupInputs() {
     var fileInput = $('#file-input');
     $('#btn-add').addEventListener('click', function () { fileInput.click(); });
+
+    var spreadInput = $('#spread-input');
+    $('#btn-spread').addEventListener('click', function () { spreadInput.click(); });
+    spreadInput.addEventListener('change', function () {
+      var file = spreadInput.files[0];
+      spreadInput.value = '';
+      if (!file) return;
+      decode(file).then(function (img) {
+        window.SpreadSplitter.open(img, function (items) {
+          addBlobs(items.map(function (it) { return it.blob; }), items.map(function (it) { return { qty: it.qty }; }));
+        });
+      }).catch(function () { toast('Couldn’t read that photo. Try a JPG or PNG.'); });
+    });
     fileInput.addEventListener('change', function () {
       addBlobs(fileInput.files).then(function () { fileInput.value = ''; });
     });
