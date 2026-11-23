@@ -33,9 +33,6 @@
           <div class="segmented" id="mode" role="radiogroup" aria-labelledby="mode-label">
             <button type="button" role="radio" data-value="WTS">WTS</button>
             <button type="button" role="radio" data-value="WTB">WTB</button>
-            <button type="button" role="radio" data-value="WTT">WTT</button>
-            <button type="button" role="radio" data-value="WTS / WTT">WTS / WTT</button>
-            <button type="button" role="radio" data-value="WTB / WTS">WTB / WTS</button>
           </div>
         </div>
         <label class="field">
@@ -249,7 +246,7 @@
         <div class="row3">
           <input type="text" data-field="rarity" list="rarity-list" placeholder="Rarity" aria-label="Rarity">
           <input type="text" data-field="price" inputmode="decimal" placeholder="Price" aria-label="Price">
-          <input type="number" data-field="qty" min="1" max="999" aria-label="Quantity" title="Quantity">
+          <input type="number" data-field="qty" min="0" max="999" aria-label="Quantity" title="Quantity (0 hides it)">
         </div>
         <input type="text" data-field="note" placeholder="Note: condition, set, language…" aria-label="Note">
         <div class="card-actions">

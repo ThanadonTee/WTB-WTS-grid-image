@@ -291,7 +291,8 @@
         card[field] = input.checked;
         li.classList.toggle('is-sold', !!card.sold);
       } else if (field === 'qty') {
-        card.qty = Math.max(1, parseInt(input.value, 10) || 1);
+        var q = parseInt(input.value, 10);
+        card.qty = isNaN(q) ? 0 : Math.max(0, Math.min(999, q));
       } else {
         card[field] = input.value;
       }

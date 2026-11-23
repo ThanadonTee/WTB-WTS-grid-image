@@ -1,6 +1,6 @@
 # WTB/WTS Grid Maker
 
-Make clean **WTS / WTB / WTT** card grid images for Facebook groups, with no image editor needed.
+Make clean **WTS / WTB** card grid images for Facebook groups, with no image editor needed.
 
 Add your card photos, type in each card's rarity and price, then export a PNG or JPG that's ready to post.
 
@@ -8,14 +8,14 @@ Add your card photos, type in each card's rarity and price, then export a PNG or
 
 - **Add cards fast**: pick several photos at once, drag and drop them, paste with Ctrl/⌘+V, or paste an image link.
 - **Split a spread photo**: upload one photo of your cards laid out on a mat (piles fanned to show how many copies you have) and the app finds each pile, crops the front card, and estimates the quantity from the fanned copies. Check the boxes before adding: drag to move, drag the corner to resize, tap an empty spot to add one, and fix quantities with − / +. Detection works best on a plain or dark mat with small gaps between piles.
-- **Card-first layout**: cards fill the grid with thin gaps. Rarity and price are tags on each card's bottom corners, and quantity (×1, ×2…) sits top-right.
+- **Card-first layout**: cards fill the grid with thin gaps. Rarity and price are tags on each card's bottom corners, and quantity (×1, ×2…) sits top-right. Set a card's quantity to 0 to hide its tag.
 - **Per-card details**: rarity (colour-coded for Vanguard's RRR, SP, OR, SEC… and other games' SAR, SIR, UR, Alt Art…), price, quantity, plus an optional name and note shown as a caption under the card.
 - **Mark as sold or found**: puts a stamp over the card, so you can repost an updated list.
-- **Post header and footer**: WTS / WTB / WTT / WTS-WTT / WTB-WTS label, a title, notes (shipping, payment), and your contact details.
+- **Post header and footer**: WTS / WTB label, a title, notes (shipping, payment), and your contact details.
 - **Card shape**: "Match my images" (the default) uses your uploads' own shape, so official scans like Vanguard's 350×510 are never cropped. Fixed Vanguard, standard 63×88, graded slab and square shapes are also available.
 - **Layout**: automatic or fixed columns, fill or fit photos, and rotation for sideways phone shots.
 - **Font**: [Kanit](https://fonts.google.com/specimen/Kanit) for Thai and English. Japanese text uses your system font.
-- **Thai or English image text**: the post-type label (ขาย / รับซื้อ / แลก…), sold stamp (ออกแล้ว…) and quantity (1 ใบ) are in Thai by default. Switch to English under *Text on image*.
+- **Thai or English image text**: the post-type label (ขาย / รับซื้อ), sold stamp (ออกแล้ว…) and quantity (1 ใบ) are in Thai by default. Switch to English under *Text on image*.
 - **Themes**: six colour themes plus a custom price colour, and a currency symbol placed before or after the number.
 - **Split big lists** into several images (e.g. 9 or 12 cards each) so Facebook doesn't shrink one huge image. Each image is numbered 1/3, 2/3…
 - **Export** at up to 3000 px wide (2048 px is Facebook's sweet spot). Then download, copy to the clipboard and paste into a post, or share directly from your phone.
